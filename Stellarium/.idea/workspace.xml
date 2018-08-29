@@ -16,8 +16,8 @@
       <file leaf-file-name="PoiControl.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/PoiControl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="18" column="13" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
+            <state relative-caret-position="-416">
+              <caret line="158" column="87" selection-start-line="158" selection-start-column="87" selection-end-line="158" selection-end-column="87" />
             </state>
           </provider>
         </entry>
@@ -25,8 +25,8 @@
       <file leaf-file-name="StellariumSlave.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/StellariumSlave.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="28" column="24" selection-start-line="28" selection-start-column="24" selection-end-line="28" selection-end-column="24" />
+            <state relative-caret-position="223">
+              <caret line="175" column="91" lean-forward="true" selection-start-line="175" selection-start-column="91" selection-end-line="175" selection-end-column="91" />
             </state>
           </provider>
         </entry>
@@ -73,8 +73,7 @@
     </treeState>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1676" />
-    <option name="y" value="12" />
+    <option name="y" value="23" />
     <option name="width" value="1440" />
     <option name="height" value="838" />
   </component>
@@ -83,12 +82,18 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
               <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
+              <item name="build" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
@@ -100,7 +105,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
       <pane id="AndroidView" />
     </panes>
   </component>
@@ -130,7 +134,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.PoiControl">
+  <component name="RunManager" selected="Application.StellariumSlave">
     <configuration name="MonitorAccelerometer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="examples.sensor.accelerometer.MonitorAccelerometer" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
@@ -199,8 +203,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.PoiControl" />
         <item itemvalue="Application.StellariumSlave" />
+        <item itemvalue="Application.PoiControl" />
         <item itemvalue="Application.MonitorAccelerometer" />
       </list>
     </recent_temporary>
@@ -219,21 +223,21 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1676" y="12" width="1440" height="838" extended-state="0" />
+    <frame x="0" y="23" width="1440" height="838" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Messages" order="7" sideWeight="0.4899857" weight="0.32793522" />
       <window_info anchor="right" id="Palette&#9;" order="4" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.5100143" side_tool="true" visible="true" weight="0.2874494" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.6137339" side_tool="true" visible="true" weight="0.34008098" />
       <window_info anchor="right" id="Maven Projects" order="5" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.3869814" weight="0.34008098" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.38626608" visible="true" weight="0.34008098" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.4899857" visible="true" weight="0.2874494" />
+      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.48712447" weight="0.2874494" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.32403433" />
-      <window_info anchor="right" id="HappyBrackets" order="6" sideWeight="0.49284253" visible="true" weight="0.26466382" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.33690986" />
+      <window_info anchor="right" id="HappyBrackets" order="6" sideWeight="0.49284253" visible="true" weight="0.20100144" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.24959612" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="UI Designer" order="2" />
@@ -264,13 +268,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/StellariumSlave.java</url>
-          <line>301</line>
+          <line>377</line>
           <properties />
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/StellariumSlave.java</url>
-          <line>300</line>
+          <line>376</line>
           <properties />
           <option name="timeStamp" value="3" />
         </line-breakpoint>
@@ -336,15 +340,15 @@
     <entry file="jar://$PROJECT_DIR$/libs/HB.jar!/net/happybrackets/core/scheduling/Clock.class" />
     <entry file="file://$PROJECT_DIR$/src/PoiControl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="18" column="13" selection-start-line="18" selection-start-column="13" selection-end-line="18" selection-end-column="13" />
+        <state relative-caret-position="-416">
+          <caret line="158" column="87" selection-start-line="158" selection-start-column="87" selection-end-line="158" selection-end-column="87" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/StellariumSlave.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="28" column="24" selection-start-line="28" selection-start-column="24" selection-end-line="28" selection-end-column="24" />
+        <state relative-caret-position="223">
+          <caret line="175" column="91" lean-forward="true" selection-start-line="175" selection-start-column="91" selection-end-line="175" selection-end-column="91" />
         </state>
       </provider>
     </entry>

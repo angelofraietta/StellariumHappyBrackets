@@ -12,6 +12,7 @@ import net.happybrackets.core.scheduling.Clock;
 import net.happybrackets.device.HB;
 import net.happybrackets.device.sensors.AccelerometerListener;
 import net.happybrackets.device.sensors.GyroscopeListener;
+import net.happybrackets.device.sensors.Sensor;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -153,7 +154,11 @@ public class PoiControl implements HBAction, HBReset {
             public void sensorUpdate(float x_val, float y_val, float z_val) {
                 /* accelerometer values typically range from -1 to + 1 */
                 /******** Write your code below this line ********/
-                float altitude_val = x_val;
+
+                // we are going to make our value go from 0 min to 2 max
+                // this allows conversion to radians the min value and max values level
+                float scaled_val = Sensor.scaleValue(-1, 1, 0, 2, y_val);
+                float altitude_val = scaled_val;
                 currentAltitude = (float) averageAltitude.addValue(altitude_val);
                 altitudeSender.setValue(currentAltitude);
 

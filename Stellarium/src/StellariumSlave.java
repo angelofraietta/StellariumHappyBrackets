@@ -1,10 +1,8 @@
 import net.happybrackets.core.HBAction;
 import net.happybrackets.core.HBReset;
-import net.happybrackets.core.control.ControlScope;
-import net.happybrackets.core.control.FloatBuddyControl;
-import net.happybrackets.core.control.TextControl;
-import net.happybrackets.core.control.TriggerControl;
+import net.happybrackets.core.control.*;
 import net.happybrackets.device.HB;
+import net.happybrackets.device.sensors.Sensor;
 import org.json.JSONObject;
 
 import java.awt.*;
@@ -81,7 +79,7 @@ public class StellariumSlave implements HBAction, HBReset {
             public void valueChanged(double control_val) {
 
                 synchronized (sendSynchroniser){
-                    currentAz = control_val / 2 * Math.PI;
+                    currentAz = control_val  * Math.PI;
                     sendSynchroniser.notify();
                 }
 
@@ -154,6 +152,42 @@ public class StellariumSlave implements HBAction, HBReset {
         };/*** End DynamicControl triggerControl code ***/
 
         /*************************************************************
+         * Create a Float type Dynamic Control pair that displays as a slider and text box
+         * Simply type floatBuddyControl to generate this code
+         *************************************************************/
+        FloatBuddyControl FOVControl = new FloatBuddyControl(this, "Feild of view", 20, 1, 180) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                String api = "main/fov";
+                Map<String,Object> params = new LinkedHashMap<>();
+
+                params.put("fov", control_val);
+                sendPostMessage(api, params);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl FOVControl code ***/
+
+        /*************************************************************
+         * Create a Float type Dynamic Control pair that displays as a slider and text box
+         * Simply type floatBuddyControl to generate this code
+         *************************************************************/
+        FloatBuddyControl TimerateControl = new FloatBuddyControl(this, "Timerate", 0, -0.006666667, 0.006666667) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                String api = "main/time";
+                Map<String,Object> params = new LinkedHashMap<>();
+
+                params.put("timerate", control_val);
+                sendPostMessage(api, params);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl FOVControl code ***/
+
+        /*************************************************************
          * Create a string type Dynamic Control that displays as a text box
          * Simply type textControl to generate this code
          *************************************************************/
@@ -171,6 +205,48 @@ public class StellariumSlave implements HBAction, HBReset {
         };/*** End DynamicControl scriptControl code ***/
 
 
+        /*************************************************************
+         * Create a Float type Dynamic Control pair that displays as a slider and text box
+         * Simply type floatBuddyControl to generate this code
+         *************************************************************/
+        FloatBuddyControl accelerometerSimulator = new FloatBuddyControl(this, "Accel Sim", 1, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                float scaled_val = Sensor.scaleValue(-1, 1, 0, 2, control_val);
+                altitudeControl.setValue(scaled_val);
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl accelerometerSimulator code ***/
+
+        // add stell true / false
+        /*************************************************************
+         * Create a string type Dynamic Control that displays as a text box
+         * Simply type textControl to generate this code
+         *************************************************************/
+        TextControl stelPropertyName = new TextControl(this, "Stel Property", "actionShow_Atmosphere") {
+            @Override
+            public void valueChanged(String control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl stelPropertyName code ***/
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
+        BooleanControl stelPropertyValue = new BooleanControl(this, "Stel Value", false) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                String stel_value = stelPropertyName.getValue();
+                sendStelProperty(stel_value, control_val);
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl stelPropertyValue code ***/
         /***** Type your HBAction code above this line ******/
     }
 
@@ -308,6 +384,22 @@ public class StellariumSlave implements HBAction, HBReset {
         catch (Exception ex){}
         return ret;
     }
+
+    /**
+     * Sends a stell property value
+     * @param name the name of the parameter
+     * @param val the value of the parameter
+     * @return true if successful
+     */
+    boolean sendStelProperty(String name, Object val){
+        String api = "stelproperty/set";
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("id", name);
+        params.put("value", val);
+
+        return sendPostMessage(api, params);
+    }
+
     //<editor-fold defaultstate="collapsed" desc="Debug Start">
 
     /**
