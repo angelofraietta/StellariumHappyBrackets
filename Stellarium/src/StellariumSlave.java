@@ -23,12 +23,19 @@ public class StellariumSlave implements HBAction, HBReset {
     double currentAz = 0;
     double currentAlt = 0; // zero is level. 1 is Up, -1 is down
 
-    Object sendSynchroniser = new Object();
+    Object altAzSynchroniser = new Object();
     boolean exitThread = false;
     Robot robot =  null;
     Dimension screensize;
 
 
+    Object fovSynchroniser = new Object();
+    Object timerateSynchroniser = new Object();
+
+    private double fieldOfView  = 1;
+
+
+    private double timeRate = 0;
     @Override
     public void action(HB hb) {
         /***** Type your HBAction code below this line ******/
@@ -48,11 +55,11 @@ public class StellariumSlave implements HBAction, HBReset {
          * Create a runnable thread object
          * simply type threadFunction to generate this code
          ***********************************************************/
-        Thread thread = new Thread(() -> {
+        new Thread(() -> {
             while (!exitThread) {
-                synchronized (sendSynchroniser){
+                synchronized (altAzSynchroniser){
                     try {
-                        sendSynchroniser.wait();
+                        altAzSynchroniser.wait();
 
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -61,15 +68,63 @@ public class StellariumSlave implements HBAction, HBReset {
                 // we should just have
                 sendAltAz(currentAz, currentAlt);
             }
-        });
+        }).start();
 
-        /*** write your code you want to execute before you start the thread below this line ***/
 
-        /*** write your code you want to execute before you start the thread above this line ***/
-
-        thread.start();
         /****************** End threadFunction **************************/
 
+        /***********************************************************
+         * Create a runnable thread object
+         * simply type threadFunction to generate this code
+         ***********************************************************/
+        new Thread(() -> {
+            while (!exitThread) {
+                synchronized (fovSynchroniser) {
+                    try {
+                        fovSynchroniser.wait();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // we should just have
+                //Add the function you need to execute here
+                String api = "main/fov";
+                Map<String,Object> params = new LinkedHashMap<>();
+
+                params.put("fov", fieldOfView);
+                try {
+                    sendPostMessage(api, params);
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                }
+
+            }
+        }).start();
+
+        /***********************************************************
+         * Create a runnable thread object
+         * simply type threadFunction to generate this code
+         ***********************************************************/
+        new Thread(() -> {
+            while (!exitThread) {
+                synchronized (timerateSynchroniser) {
+                    try {
+                        timerateSynchroniser.wait();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // we should just have
+                //Add the function you need to execute here
+                String api = "main/time";
+                Map<String,Object> params = new LinkedHashMap<>();
+
+                params.put("timerate", timeRate);
+                sendPostMessage(api, params);
+            }
+        }).start();
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
          * Simply type floatBuddyControl to generate this code
@@ -78,9 +133,9 @@ public class StellariumSlave implements HBAction, HBReset {
             @Override
             public void valueChanged(double control_val) {
 
-                synchronized (sendSynchroniser){
+                synchronized (altAzSynchroniser){
                     currentAz = control_val  * Math.PI;
-                    sendSynchroniser.notify();
+                    altAzSynchroniser.notify();
                 }
 
                 /*** Write your DynamicControl code above this line ***/
@@ -97,13 +152,58 @@ public class StellariumSlave implements HBAction, HBReset {
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
                 // we are going to convert x axis to the alt
-                synchronized (sendSynchroniser){
+                synchronized (altAzSynchroniser){
                     currentAlt = control_val  / 2 * Math.PI;
-                    sendSynchroniser.notify();
+                    altAzSynchroniser.notify();
                 }
                 /*** Write your DynamicControl code above this line ***/
             }
         }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl altitudeControl code ***/
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
+        BooleanControl atmosphereControl = new BooleanControl(this, "Atmospehere", true) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                sendStelProperty("actionShow_Atmosphere", control_val);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl atmosphereControl code ***/
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
+        BooleanControl ConstellationControl = new BooleanControl(this, "Constellation Art", false) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                sendStelProperty("actionShow_Constellation_Art", control_val);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl atmosphereControl code ***/
+
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
+        BooleanControl starLabelsControl = new BooleanControl(this, "Star Labels", true) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                sendStelProperty("actionShow_Stars_Labels", control_val);
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl starLabelsControl code ***/
+
 
         /*************************************************************
          * Create a Trigger type Dynamic Control that displays as a button
@@ -152,36 +252,34 @@ public class StellariumSlave implements HBAction, HBReset {
         };/*** End DynamicControl triggerControl code ***/
 
         /*************************************************************
-         * Create a Float type Dynamic Control pair that displays as a slider and text box
-         * Simply type floatBuddyControl to generate this code
+         * Create a Float type Dynamic Control that displays as a slider and text box
+         * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatBuddyControl FOVControl = new FloatBuddyControl(this, "Feild of view", 20, 1, 180) {
+        FloatControl FOVControl = new FloatSliderControl(this, "Field of view", 20, 1, 180) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
-                String api = "main/fov";
-                Map<String,Object> params = new LinkedHashMap<>();
+                fieldOfView = control_val;
 
-                params.put("fov", control_val);
-                sendPostMessage(api, params);
-
+                synchronized (fovSynchroniser){
+                    fovSynchroniser.notify();
+                }
                 /*** Write your DynamicControl code above this line ***/
             }
-        };/*** End DynamicControl FOVControl code ***/
+        }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl FOVControl code ***/
 
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
          * Simply type floatBuddyControl to generate this code
          *************************************************************/
-        FloatBuddyControl TimerateControl = new FloatBuddyControl(this, "Timerate", 0, -0.006666667, 0.006666667) {
+        FloatControl TimerateControl = new FloatBuddyControl(this, "Timerate", timeRate, -0.006666667, 0.006666667) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
-                String api = "main/time";
-                Map<String,Object> params = new LinkedHashMap<>();
-
-                params.put("timerate", control_val);
-                sendPostMessage(api, params);
+                timeRate = control_val;
+                synchronized (timerateSynchroniser){
+                    timerateSynchroniser.notify();
+                }
 
                 /*** Write your DynamicControl code above this line ***/
             }
@@ -214,7 +312,7 @@ public class StellariumSlave implements HBAction, HBReset {
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
 
-                float scaled_val = Sensor.scaleValue(-1, 1, 0, 2, control_val);
+                float scaled_val = Sensor.scaleValue(-1, 1, 1, 2, control_val);
                 altitudeControl.setValue(scaled_val);
                 /*** Write your DynamicControl code above this line ***/
             }
@@ -380,7 +478,7 @@ public class StellariumSlave implements HBAction, HBReset {
                 ret = message_val.getBoolean("scriptIsRunning");
                 System.out.println("Get Script status " + ret);
             }
-        }   
+        }
         catch (Exception ex){}
         return ret;
     }

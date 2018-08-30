@@ -4,10 +4,7 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 import net.happybrackets.core.HBAction;
 import net.happybrackets.core.HBReset;
-import net.happybrackets.core.control.ControlScope;
-import net.happybrackets.core.control.FloatBuddyControl;
-import net.happybrackets.core.control.FloatSliderControl;
-import net.happybrackets.core.control.IntegerSliderControl;
+import net.happybrackets.core.control.*;
 import net.happybrackets.core.scheduling.Clock;
 import net.happybrackets.device.HB;
 import net.happybrackets.device.sensors.AccelerometerListener;
@@ -16,6 +13,7 @@ import net.happybrackets.device.sensors.Sensor;
 
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class PoiControl implements HBAction, HBReset {
     // Change to the number of audio Channels on your device
@@ -46,12 +44,69 @@ public class PoiControl implements HBAction, HBReset {
 
     int envelopIndex =  0;
 
+    // We will set this when the average gyo is within range
+    boolean altitudeMovementValid = false;
+
+
+    // moving the gyro at a rate greater than this amount will change the field of view
+    final double FOV_GYRO_THRESHOLD = 2;
+    final double FOV_INCREMENT = .5;
+
+    // maximum and minnimum FIELD of view values
+    final double MIN_FOV = 1;
+    final double MAX_FOV = 120;
+
+    final int MAX_CLOCK_INTERVAL = 5000;
+    final int MIN_CLOCK_INTERVAL = 50;
+
+    // we will only allow FOV to change a certain number of times
+    long lastFovDate = 0;
+
+    final long FOV_WAIT_TIME = 1;
+
+    /**
+     * Calulate what we want our clock to run based on field of view
+     * @param field_of_view the field of view
+     * @return clock interval
+     */
+    double calculateClockInterval (double field_of_view){
+
+        return Sensor.scaleValue(MIN_FOV, MAX_FOV, MIN_CLOCK_INTERVAL, MAX_CLOCK_INTERVAL, field_of_view);
+    }
+
+    /**
+     * Get current date in seconds
+     * @return time in seconds
+     */
+    long getDateinSeconds(){
+        long ret = new Date().getTime() /1000L;
+        return ret;
+    }
+
+    /**
+     * Play a number of beeps
+     * @param num_beeps
+     */
+    void playBeeps(int num_beeps){
+        Envelope e = envelopes.get(envelopIndex % TOTAL_OSCILLATORS);
+        final float LOUD_VOL = 20;
+        final float LOUD_SLOPE = 20;
+        final float LOUD_DURATION = 100;
+
+        for (int i = 0; i < num_beeps; i++) {
+            e.addSegment(LOUD_VOL, LOUD_SLOPE);
+            e.addSegment(LOUD_VOL, LOUD_DURATION);
+            e.addSegment(1, LOUD_SLOPE);
+        }
+    }
     @Override
     public void action(HB hb) {
         /***** Type your HBAction code below this line ******/
         // remove this code if you do not want other compositions to run at the same time as this one
         hb.reset();
         hb.setStatus(this.getClass().getSimpleName() + " Loaded");
+
+
 
         // Connect our gain to HB
         masterGain.connectTo(hb.ac.out);
@@ -128,6 +183,31 @@ public class PoiControl implements HBAction, HBReset {
         /*** End DynamicControl azimuthSender code ***/
 
 
+        /*************************************************************
+         * Create a Float type Dynamic Control that displays as a text box
+         * Simply type floatTextControl to generate this code
+         *************************************************************/
+        FloatTextControl gyroValue = new FloatTextControl(this, "Gyro Value", 0) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl code gyroValue ***/
+
+        /*************************************************************
+         * Create a Float type Dynamic Control that displays as a text box
+         * Simply type floatTextControl to generate this code
+         *************************************************************/
+        FloatTextControl fieldOfViewControl = new FloatTextControl(this, "Field of view", 20) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                hbClock.setInterval(calculateClockInterval(control_val));
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl code fieldOfViewControl ***/
         /*****************************************************
          * Add a gyroscope sensor listener. *
          * to create this code, simply type gyroscopeSensor
@@ -137,9 +217,47 @@ public class PoiControl implements HBAction, HBReset {
             public void sensorUpdated(float pitch, float roll, float yaw) {
                 /******** Write your code below this line ********/
 
-                float az_adjust = (float) averageAzimuth.addValue(pitch) / 100;
-                currentAzimuth += az_adjust;
-                azimuthSender.setValue(currentAzimuth);
+
+
+                // make sure we have enough gyroscope to warrant moving azimuth
+                if (Math.abs(pitch) > 0.1 && Math.abs(pitch) < FOV_GYRO_THRESHOLD) {
+                    float az_adjust = (float) averageAzimuth.addValue(pitch) / 100;
+                    currentAzimuth += az_adjust;
+                    azimuthSender.setValue(currentAzimuth);
+                }
+
+                if (Math.abs(pitch) >= FOV_GYRO_THRESHOLD) {
+                    long delay = getDateinSeconds() - lastFovDate;
+                    if (delay > FOV_WAIT_TIME) {
+                        lastFovDate = getDateinSeconds();
+                        double current_fov = fieldOfViewControl.getValue();
+
+                        if (pitch < 0) {
+
+                            if (current_fov > MIN_FOV) {
+                                fieldOfViewControl.setValue(current_fov - FOV_INCREMENT);
+                                playBeeps (2);
+                            }
+                        } else {
+                            if (current_fov < MAX_FOV) {
+                                fieldOfViewControl.setValue(current_fov + FOV_INCREMENT);
+                                playBeeps(5);
+                            }
+                        }
+                    }
+                }
+                // Let us stabilise the altidue by making sure we have enough gyo on roll and yaw
+                // to indicate we are actually moving. We will do a pythagorean average
+                double averageGyro = Math.sqrt( roll * roll + yaw * yaw);
+
+                double gyro_thresh = 0.04;
+                if (averageGyro > gyro_thresh) {
+                    gyroValue.setValue(Math.round(averageGyro * 100));
+                    altitudeMovementValid = true;
+                }
+                else{
+                    altitudeMovementValid = false;
+                }
                 /******** Write your code above this line ********/
             }
         }.setRounding(2);
@@ -157,11 +275,21 @@ public class PoiControl implements HBAction, HBReset {
 
                 // we are going to make our value go from 0 min to 2 max
                 // this allows conversion to radians the min value and max values level
-                float scaled_val = Sensor.scaleValue(-1, 1, 0, 2, y_val);
-                float altitude_val = scaled_val;
-                currentAltitude = (float) averageAltitude.addValue(altitude_val);
-                altitudeSender.setValue(currentAltitude);
 
+                final double MAX_ALT = 2 - 0.000001;
+                float scaled_val = Sensor.scaleValue(-1, 1, 1, MAX_ALT, y_val);
+                float altitude_val = scaled_val;
+
+                float altitude = (float) averageAltitude.addValue(altitude_val);
+                if (altitude >= 1 && altitude <= MAX_ALT) {
+
+                    currentAltitude = altitude;
+
+
+                    if (altitudeMovementValid) {
+                        altitudeSender.setValue(currentAltitude);
+                    }
+                }
                 /******** Write your code above this line ********/
 
             }
