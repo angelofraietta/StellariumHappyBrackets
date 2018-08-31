@@ -54,7 +54,7 @@ public class PoiControl implements HBAction, HBReset {
             0.005, 0.016, 0.37, 0.14, 0.5,  0.75, 1.25, 3.5, 7.5, 15, 30, 60, 120
     };
 
-    int currentFovIndex = 3;
+    int currentFovIndex = fieldsOfView.length - 3;
 
     double remoteFOV =  0;
 
@@ -81,7 +81,7 @@ public class PoiControl implements HBAction, HBReset {
     final double MIN_FOV = fieldsOfView[0];
     final double MAX_FOV = fieldsOfView[fieldsOfView.length -1];
 
-    final int MAX_CLOCK_INTERVAL = 5000;
+    final int MAX_CLOCK_INTERVAL = 4000;
     final int MIN_CLOCK_INTERVAL = 100;
 
     // If our FOV threshold is below this value, we will change the way our sensors behave
@@ -90,13 +90,30 @@ public class PoiControl implements HBAction, HBReset {
 
 
     /**
-     * Calulate what we want our clock to run based on field of view
+     * Calculate what we want our clock to run based on field of view
      * @param field_of_view the field of view
      * @return clock interval
      */
     double calculateClockInterval (double field_of_view){
 
-        return Sensor.scaleValue(MIN_FOV, MAX_FOV, MIN_CLOCK_INTERVAL, MAX_CLOCK_INTERVAL, field_of_view);
+        // first find which index we are in
+        int fov_index = 0;
+
+        while (fieldsOfView[fov_index] < field_of_view && fov_index < fieldsOfView.length -1)
+        {
+            fov_index++;
+        }
+
+        return Sensor.scaleValue(0, fieldsOfView.length, MIN_CLOCK_INTERVAL, MAX_CLOCK_INTERVAL, field_of_view);
+    }
+
+
+    /**
+     * Get the current Field of view value based on index
+     * @return the current field of view for current index
+     */
+    double getSelectedFieldOfView(){
+        return fieldsOfView[currentFovIndex];
     }
 
     /**
@@ -190,6 +207,20 @@ public class PoiControl implements HBAction, HBReset {
 
         beepClock = hbClock;
 
+        /*************************************************************
+         * Create a Boolean type Dynamic Control pair that displays as a check box
+         * Simply type globalBooleanControl to generate this code
+         *************************************************************/
+        BooleanControl disableFOVChange = new BooleanControl(this, "Disable FOV Change", false) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl disableFOVChange code ***/
+
 
         /*************************************************************
          * Create a Float type Dynamic Control pair
@@ -200,9 +231,10 @@ public class PoiControl implements HBAction, HBReset {
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
 
-                playBuzz(control_val > remoteFOV);
+                // act on field of view returned from Stellarium
                 remoteFOV = control_val;
 
+                hbClock.setInterval(calculateClockInterval(remoteFOV));
 
                 /*** Write your DynamicControl code above this line ***/
             }
@@ -266,18 +298,6 @@ public class PoiControl implements HBAction, HBReset {
         /*** End DynamicControl azimuthSender code ***/
 
 
-        /*************************************************************
-         * Create a Float type Dynamic Control that displays as a text box
-         * Simply type floatTextControl to generate this code
-         *************************************************************/
-        FloatTextControl gyroValue = new FloatTextControl(this, "Gyro Value", 0) {
-            @Override
-            public void valueChanged(double control_val) {
-                /*** Write your DynamicControl code below this line ***/
-
-                /*** Write your DynamicControl code above this line ***/
-            }
-        };/*** End DynamicControl code gyroValue ***/
 
         /*************************************************************
          * Create a Float type Dynamic Control that displays as a text box
@@ -315,7 +335,7 @@ public class PoiControl implements HBAction, HBReset {
                     }
                 }
 
-                if (Math.abs(pitch) >= FOV_GYRO_THRESHOLD) {
+                if (Math.abs(pitch) >= FOV_GYRO_THRESHOLD && !disableFOVChange.getValue()) {
                     long delay = getDateinSeconds() - lastFovDate;
                     if (delay > FOV_WAIT_TIME) {
                         lastFovDate = getDateinSeconds();
@@ -340,13 +360,7 @@ public class PoiControl implements HBAction, HBReset {
                 double averageGyro = Math.sqrt( roll * roll + yaw * yaw);
 
 
-                if (averageGyro > ALTITIDE_GYRO_THRESHOLD) {
-                    gyroValue.setValue(Math.round(averageGyro * 100));
-                    altitudeMovementValid = true;
-                }
-                else{
-                    altitudeMovementValid = false;
-                }
+                altitudeMovementValid = averageGyro > ALTITIDE_GYRO_THRESHOLD;
 
                 // see if we are going to send up / down keys
                 if (Math.abs(yaw) > 0.1 && !lowResolutionMode()) {
@@ -369,8 +383,8 @@ public class PoiControl implements HBAction, HBReset {
                 /* accelerometer values typically range from -1 to + 1 */
                 /******** Write your code below this line ********/
 
-                //
-                if (lowResolutionMode()) {
+                // Our altitude valid will only occur if our average gyro is above a certain value
+                if (lowResolutionMode() && altitudeMovementValid) {
                     // we are going to make our value go from min to  max
                     // this allows conversion to radians the min value and max values level
 
@@ -382,10 +396,7 @@ public class PoiControl implements HBAction, HBReset {
 
                         currentAltitude = altitude;
 
-
-                        if (altitudeMovementValid) {
-                            altitudeSender.setValue(currentAltitude);
-                        }
+                        altitudeSender.setValue(currentAltitude);
                     }
                 }
 
