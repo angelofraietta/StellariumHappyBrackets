@@ -17,7 +17,7 @@ import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class StellariumSlave implements HBAction, HBReset {
+public class StellariumLocalHost implements HBAction, HBReset {
     // Change to the number of audio Channels on your device
     final int NUMBER_AUDIO_CHANNELS = 1;
 
@@ -39,7 +39,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
     private double fieldOfView  = 1;
 
-    String stellariumDevice = "Michaels-Mac-mini-3.local";
+    String stellariumDevice = "localhost";
 
 
     private double timeRate = 0;
@@ -87,7 +87,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
         /***********************************************************
          * Create a runnable thread object
-         * simply type synchronizedThread to generate this code
+         * simply type threadFunction to generate this code
          ***********************************************************/
         new Thread(() -> {
             while (!exitThread) {
@@ -143,7 +143,7 @@ public class StellariumSlave implements HBAction, HBReset {
         /*** End DynamicControl leftRightMovement code ***/
         /***********************************************************
          * Create a runnable thread object
-         * simply type synchronizedThread to generate this code
+         * simply type threadFunction to generate this code
          ***********************************************************/
         new Thread(() -> {
             while (!exitThread) {
@@ -163,7 +163,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
         /***********************************************************
          * Create a runnable thread object
-         * simply type synchronizedThread to generate this code
+         * simply type threadFunction to generate this code
          ***********************************************************/
         new Thread(() -> {
             while (!exitThread) {
@@ -182,7 +182,7 @@ public class StellariumSlave implements HBAction, HBReset {
         }).start();
         /***********************************************************
          * Create a runnable thread object
-         * simply type synchronizedThread to generate this code
+         * simply type threadFunction to generate this code
          ***********************************************************/
         new Thread(() -> {
             while (!exitThread) {
@@ -231,7 +231,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
         /***********************************************************
          * Create a runnable thread object
-         * simply type synchronizedThread to generate this code
+         * simply type threadFunction to generate this code
          ***********************************************************/
         new Thread(() -> {
             while (!exitThread) {
