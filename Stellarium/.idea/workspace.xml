@@ -13,22 +13,28 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="PoiControl.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="PoiControl.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/PoiControl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="56" column="31" lean-forward="true" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
+            <state relative-caret-position="648">
+              <caret line="332" column="26" selection-start-line="332" selection-start-column="26" selection-end-line="332" selection-end-column="26" />
+              <folding>
+                <element signature="e#15042#15043#0" expanded="true" />
+                <element signature="e#15118#15119#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="StellariumSlave.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="StellariumSlave.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/StellariumSlave.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="34" column="3" selection-start-line="34" selection-start-column="3" selection-end-line="34" selection-end-column="3" />
+            <state relative-caret-position="240">
+              <caret line="211" lean-forward="true" selection-start-line="211" selection-end-line="211" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#27432#27433#0" expanded="true" />
+                <element signature="e#27465#27466#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -81,6 +87,21 @@
       <find>currentAz</find>
       <find>sendSynchroniser</find>
       <find>rate</find>
+      <find>screensize</find>
+      <find>local</find>
+      <find>MAX_ALT</find>
+      <find>playBeeps</find>
+      <find>killtrigger</find>
+      <find>move</find>
+      <find>lrMoveSynchroniser</find>
+      <find>changeFieldOfView</find>
+      <find>fieldOfView</find>
+      <find>MIN_CLOCK_INTERVAL</find>
+      <find>playBuzz</find>
+      <find>beepClock</find>
+      <find>fovSynchroniser</find>
+      <find>calculateClockInterval</find>
+      <find>fovReturn</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -108,8 +129,8 @@
     </treeState>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1810" />
-    <option name="y" value="-172" />
+    <option name="x" value="1643" />
+    <option name="y" value="6" />
     <option name="width" value="1551" />
     <option name="height" value="838" />
   </component>
@@ -118,7 +139,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -163,10 +183,32 @@
               <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+              <item name="sensor" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Stellarium" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Stellarium" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+              <item name="sensor" type="462c0819:PsiDirectoryNode" />
+              <item name="gyroscope" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="AndroidView" />
     </panes>
@@ -286,7 +328,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1810" y="-172" width="1551" height="838" extended-state="0" />
+    <frame x="1643" y="6" width="1551" height="838" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info anchor="right" id="Palette" order="3" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -296,10 +339,11 @@
       <window_info anchor="right" id="Maven Projects" order="5" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.38268957" weight="0.34008098" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="7" sideWeight="0.48575217" visible="true" weight="0.2874494" />
+      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.48575217" weight="0.2874494" />
       <window_info id="Designer" order="2" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26706427" />
-      <window_info anchor="right" id="HappyBrackets" order="6" sideWeight="0.49284253" visible="true" weight="0.314778" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.27037773" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49353796" weight="0.32793522" />
+      <window_info active="true" anchor="right" id="HappyBrackets" order="6" sideWeight="0.49284253" visible="true" weight="0.23459245" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.24959612" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info id="UI Designer" order="2" />
@@ -316,38 +360,37 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info id="Capture Tool" order="2" />
-      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49353796" weight="0.32840723" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" id="Palette" order="3" />
       <window_info active="true" anchor="right" id="HappyBrackets" order="6" sideWeight="0.49284253" visible="true" weight="0.314778" />
-      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49353796" weight="0.32840723" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" sideWeight="0.496063" weight="0.1648" />
       <window_info anchor="right" id="Capture Analysis" order="7" />
-      <window_info anchor="right" id="Coverage" order="9" sideWeight="0.503937" side_tool="true" weight="0.20553781" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.38268957" weight="0.34008098" />
       <window_info anchor="right" id="Theme Preview" order="8" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Messages" order="10" sideWeight="0.4899857" weight="0.32793522" />
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26706427" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.24959612" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info id="Favorites" order="6" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
       <window_info id="UI Designer" order="4" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.45851216" weight="0.39676112" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49353796" weight="0.32840723" />
       <window_info anchor="right" x="0" y="0" width="310" height="638" id="Documentation" order="10" sideWeight="0.50715744" side_tool="true" visible="true" weight="0.26466382" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.45851216" weight="0.39676112" />
       <window_info anchor="right" id="Palette&#9;" order="4" />
-      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.48575217" visible="true" weight="0.2874494" />
+      <window_info anchor="right" id="Coverage" order="9" sideWeight="0.503937" side_tool="true" weight="0.20553781" />
       <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.51424783" side_tool="true" visible="true" weight="0.2874494" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info id="Capture Tool" order="5" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Messages" order="10" sideWeight="0.4899857" weight="0.32793522" />
+      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.48575217" visible="true" weight="0.2874494" />
       <window_info anchor="right" id="Maven Projects" order="5" />
-      <window_info id="Favorites" order="6" side_tool="true" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
     </layout-to-restore>
   </component>
   <component name="UnknownFeatures">
@@ -361,7 +404,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/PoiControl.java</url>
-          <line>229</line>
+          <line>318</line>
           <properties />
           <option name="timeStamp" value="16" />
         </line-breakpoint>
@@ -370,10 +413,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/data/scripts/stellarium/boorons.ssc" />
-    <entry file="file://$PROJECT_DIR$/src/PoiControl.java" />
-    <entry file="file://$PROJECT_DIR$/src/StellariumSlave.java" />
-    <entry file="jar://$PROJECT_DIR$/libs/HB.jar!/net/happybrackets/core/scheduling/Clock.class" />
     <entry file="file://$PROJECT_DIR$/src/examples/basic/GainEnvelope.java" />
     <entry file="file://$PROJECT_DIR$/src/HBPerm_DataSmoother.java" />
     <entry file="file://$PROJECT_DIR$/data/classes/hb-b827eb92785f-startup.txt" />
@@ -408,7 +447,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/examples/sensor/accelerometer/SimpleAccelerometer.java" />
-    <entry file="file://$PROJECT_DIR$/src/examples/sensor/gyroscope/MonitorGyroscope.java" />
     <entry file="file://$PROJECT_DIR$/src/examples/sensor/accelerometer/MonitorAccelerometer.java" />
     <entry file="jar://$PROJECT_DIR$/libs/HB.jar!/net/happybrackets/core/control/DynamicControl.class" />
     <entry file="file://$PROJECT_DIR$/data/scripts/stellarium/ShowAtmosphere.ssc" />
@@ -419,7 +457,6 @@
     <entry file="file://$PROJECT_DIR$/Device/HappyBrackets/setup/setup-image-zulu.sh" />
     <entry file="jar://$PROJECT_DIR$/libs/HB.jar!/net/happybrackets/device/HB.class" />
     <entry file="file://$PROJECT_DIR$/src/HBPerm_DataSmoother.java" />
-    <entry file="file://$PROJECT_DIR$/src/examples/basic/GainEnvelope.java" />
     <entry file="jar://$PROJECT_DIR$/libs/HB.jar!/net/happybrackets/core/scheduling/Clock.class" />
     <entry file="file://$PROJECT_DIR$/Device/HappyBrackets/HBVersion.txt">
       <provider selected="true" editor-type-id="text-editor">
@@ -449,19 +486,61 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/PoiControl.java">
+    <entry file="file://$PROJECT_DIR$/src/examples/basic/GainEnvelope.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="149">
-          <caret line="56" column="31" lean-forward="true" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
+        <state relative-caret-position="-420" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/midi/scales/MajorScale.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1080" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/events/clocks/SimpleClock.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-720" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/events/envelope/EnvelopeTrigger.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="28" column="8" lean-forward="true" selection-start-line="28" selection-start-column="8" selection-end-line="28" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/basic/FrequencyEnvelope.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="441">
+          <caret line="70" column="77" selection-start-line="70" selection-start-column="77" selection-end-line="70" selection-end-column="77" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/sensor/gyroscope/MonitorGyroscope.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="40">
+          <caret line="40" lean-forward="true" selection-start-line="40" selection-end-line="40" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/StellariumSlave.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="34" column="3" selection-start-line="34" selection-start-column="3" selection-end-line="34" selection-end-column="3" />
+        <state relative-caret-position="240">
+          <caret line="211" lean-forward="true" selection-start-line="211" selection-end-line="211" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#27432#27433#0" expanded="true" />
+            <element signature="e#27465#27466#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PoiControl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="332" column="26" selection-start-line="332" selection-start-column="26" selection-end-line="332" selection-end-column="26" />
+          <folding>
+            <element signature="e#15042#15043#0" expanded="true" />
+            <element signature="e#15118#15119#0" expanded="true" />
           </folding>
         </state>
       </provider>
