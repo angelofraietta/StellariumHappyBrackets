@@ -20,8 +20,13 @@ import java.util.Map;
 public class StellariumSlave implements HBAction, HBReset {
     // Change to the number of audio Channels on your device
     final int NUMBER_AUDIO_CHANNELS = 1;
+
+    // These are maximum minimum scaled values for altitude accelerometer
+    final double MAX_ACCEL_ALT = 2;
+    final double MIN_ACCEL_ALT = 1.000001;
+
     double currentAz = 0;
-    double currentAlt = 0; // zero is level. 1 is Up, -1 is down
+    double currentAlt = 0; // zero is level. 1 is Up, -1 is down, 2 is behind
 
     Object altAzSynchroniser = new Object();
     boolean exitThread = false;
@@ -34,8 +39,19 @@ public class StellariumSlave implements HBAction, HBReset {
 
     private double fieldOfView  = 1;
 
+    String stellariumDevice = "Michaels-Mac-mini-3.local";
+
 
     private double timeRate = 0;
+    private Object lrMoveSynchroniser = new Object();
+    private Object upMoveSynchroniser = new Object();
+
+    private double LRMovementAmount = 0;
+    private double UDMovementAmount =  0;
+
+    // use this control to send back to notify our listeners we have changed FOV
+    FloatControl fovReturnControl = null;
+
     @Override
     public void action(HB hb) {
         /***** Type your HBAction code below this line ******/
@@ -43,13 +59,31 @@ public class StellariumSlave implements HBAction, HBReset {
         hb.reset();
         hb.setStatus(this.getClass().getSimpleName() + " Loaded");
 
-        try {
-            robot = new Robot();
-        } catch (AWTException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Try robot");
+        /*
+        Platform.runLater(() -> {
+                    try {
+                        try {
+                            //new JFXPanel();
 
-        screensize = Toolkit.getDefaultToolkit().getScreenSize();
+                            //robot = new Robot();
+
+                            try{
+                                //screensize = Toolkit.getDefaultToolkit().getScreenSize();
+
+                            }catch (Exception ex){}
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    } catch (Exception ex) {
+                    }
+                }
+        );
+*/
+        System.out.println("Robot finished");
+
 
         /***********************************************************
          * Create a runnable thread object
@@ -73,6 +107,79 @@ public class StellariumSlave implements HBAction, HBReset {
 
         /****************** End threadFunction **************************/
 
+        /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        FloatBuddyControl leftRightMovement = new FloatBuddyControl(this, "LR Movement", 0, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                LRMovementAmount = control_val;
+                synchronized (lrMoveSynchroniser){
+                    lrMoveSynchroniser.notify();
+                }
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+
+        /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        FloatBuddyControl upDownMovement = new FloatBuddyControl(this, "UP Movement", 0, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                UDMovementAmount = control_val;
+                synchronized (upMoveSynchroniser){
+                    upMoveSynchroniser.notify();
+                }
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl upDownMovement code ***/
+        /*** End DynamicControl leftRightMovement code ***/
+        /***********************************************************
+         * Create a runnable thread object
+         * simply type threadFunction to generate this code
+         ***********************************************************/
+        new Thread(() -> {
+            while (!exitThread) {
+                synchronized (lrMoveSynchroniser) {
+                    try {
+                        lrMoveSynchroniser.wait();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // we should just have
+                //Add the function you need to execute here
+                sendMoveLR(LRMovementAmount);
+            }
+        }).start();
+
+        /***********************************************************
+         * Create a runnable thread object
+         * simply type threadFunction to generate this code
+         ***********************************************************/
+        new Thread(() -> {
+            while (!exitThread) {
+                synchronized (upMoveSynchroniser) {
+                    try {
+                        upMoveSynchroniser.wait();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // we should just have
+                //Add the function you need to execute here
+                sendMoveUD(UDMovementAmount);
+            }
+        }).start();
         /***********************************************************
          * Create a runnable thread object
          * simply type threadFunction to generate this code
@@ -94,13 +201,33 @@ public class StellariumSlave implements HBAction, HBReset {
 
                 params.put("fov", fieldOfView);
                 try {
-                    sendPostMessage(api, params);
+                    if (sendPostMessage(api, params)){
+                        if (fovReturnControl != null) {
+                            fovReturnControl.setValue(fieldOfView);
+                        }
+                    }
                 }catch (Exception ex){
                     ex.printStackTrace();
                 }
 
             }
         }).start();
+
+        /*************************************************************
+         * Create a string type Dynamic Control that displays as a text box
+         * Simply type textControl to generate this code
+         *************************************************************/
+        TextControl stellariumAddress = new TextControl(this, "Stellarium Address", stellariumDevice) {
+            @Override
+            public void valueChanged(String control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                // change where our stellarium device is
+                stellariumDevice = control_val;
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl stellariumAddress code ***/
+
 
         /***********************************************************
          * Create a runnable thread object
@@ -220,7 +347,7 @@ public class StellariumSlave implements HBAction, HBReset {
                     e.printStackTrace();
                 }
 
-                if (robot != null){
+                if (robot != null && screensize != null){
                     robot.mouseMove(screensize.width / 2, screensize.height / 2);
                     robot.delay(5);
                     robot.mousePress(MouseEvent.BUTTON1_DOWN_MASK);
@@ -252,10 +379,22 @@ public class StellariumSlave implements HBAction, HBReset {
         };/*** End DynamicControl triggerControl code ***/
 
         /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        fovReturnControl = new FloatBuddyControl(this, "FOV Return", 0, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+
+        /*************************************************************
          * Create a Float type Dynamic Control that displays as a slider and text box
          * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatControl FOVControl = new FloatSliderControl(this, "Field of view", 20, 1, 180) {
+        FloatControl FOVControl = new FloatBuddyControl(this, "Field of view", 20, 1, 180) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -312,7 +451,7 @@ public class StellariumSlave implements HBAction, HBReset {
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
 
-                float scaled_val = Sensor.scaleValue(-1, 1, 1, 2, control_val);
+                float scaled_val = Sensor.scaleValue(-1, 1, MIN_ACCEL_ALT, MAX_ACCEL_ALT, control_val);
                 altitudeControl.setValue(scaled_val);
                 /*** Write your DynamicControl code above this line ***/
             }
@@ -360,8 +499,9 @@ public class StellariumSlave implements HBAction, HBReset {
     synchronized boolean sendPostMessage(String api, Map<String,Object> params) {
         boolean ret = false;
 
+        System.out.println("Send Post");
         try {
-            URL url = new URL("http://localhost:8090/api/" + api);
+            URL url = new URL("http://" + stellariumDevice + ":8090/api/" + api);
             StringBuilder postData = new StringBuilder();
             for (Map.Entry<String, Object> param : params.entrySet()) {
                 if (postData.length() != 0) {
@@ -498,6 +638,33 @@ public class StellariumSlave implements HBAction, HBReset {
         return sendPostMessage(api, params);
     }
 
+    /**
+     * Make stellarium move left or right in azimuth simulating arrow keys
+     * a negative value signifies left
+     * @param qty qty to move
+     * @return true on success
+     */
+    boolean sendMoveLR(double qty){
+        String api = "main/move";
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("x", qty);
+
+        return sendPostMessage(api, params);
+    }
+
+    /**
+     * Make stellarium move up or down simulating arrow keys
+     * a negative value signifies down
+     * @param qty qty to move
+     * @return true on success
+     */
+    boolean sendMoveUD(double qty){
+        String api = "main/move";
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("y", qty);
+
+        return sendPostMessage(api, params);
+    }
     //<editor-fold defaultstate="collapsed" desc="Debug Start">
 
     /**

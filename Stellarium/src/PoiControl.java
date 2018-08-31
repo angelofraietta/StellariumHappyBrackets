@@ -1,4 +1,5 @@
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.events.KillTrigger;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
@@ -22,8 +23,19 @@ public class PoiControl implements HBAction, HBReset {
     // The string holds the Y accelerometer
     // around string is Pitch
 
+    // Around the speakers is the yaw
+    // we will use Yaw for fine up down movement
+
+    final float BUZZ_VOL = 20;
+    final float BUZZ_DURATION = 200;
+
+
     final int ALTITUDE_BUFF_SIZE = 4;
     final int AZIMUTH_BUFF_SIZE = 4;
+
+    // the maximum altitude we can send
+    final double MAX_ALT = 2;
+    final double MIN_ALT = 1.000001;
 
     HBPerm_DataSmoother averageAltitude = new HBPerm_DataSmoother(ALTITUDE_BUFF_SIZE);
     HBPerm_DataSmoother averageAzimuth = new HBPerm_DataSmoother(AZIMUTH_BUFF_SIZE);
@@ -34,9 +46,17 @@ public class PoiControl implements HBAction, HBReset {
     final int TOTAL_OSCILLATORS = 10;
     int numOscillators = 0;
 
-    Gain masterGain = new Gain(1, 0.1f);
+    Gain masterGain = new Gain(NUMBER_AUDIO_CHANNELS, 0.1f);
 
     ArrayList<Envelope> envelopes = new ArrayList<>();
+
+    final double[] fieldsOfView = new double[] {
+            0.005, 0.016, 0.37, 0.14, 0.5,  0.75, 1.25, 3.5, 7.5, 15, 30, 60, 120
+    };
+
+    int currentFovIndex = 3;
+
+    double remoteFOV =  0;
 
     Clock beepClock;
 
@@ -48,21 +68,26 @@ public class PoiControl implements HBAction, HBReset {
     boolean altitudeMovementValid = false;
 
 
+    final double ALTITIDE_GYRO_THRESHOLD = 0.08;
+
     // moving the gyro at a rate greater than this amount will change the field of view
     final double FOV_GYRO_THRESHOLD = 2;
-    final double FOV_INCREMENT = .5;
-
-    // maximum and minnimum FIELD of view values
-    final double MIN_FOV = 1;
-    final double MAX_FOV = 120;
-
-    final int MAX_CLOCK_INTERVAL = 5000;
-    final int MIN_CLOCK_INTERVAL = 50;
 
     // we will only allow FOV to change a certain number of times
-    long lastFovDate = 0;
+    long lastFovDate = 0; // last time FOV was changed
+    final long FOV_WAIT_TIME = 1; // How long we must wait before successive FOV changes
 
-    final long FOV_WAIT_TIME = 1;
+    // maximum and minimum FIELD of view values
+    final double MIN_FOV = fieldsOfView[0];
+    final double MAX_FOV = fieldsOfView[fieldsOfView.length -1];
+
+    final int MAX_CLOCK_INTERVAL = 5000;
+    final int MIN_CLOCK_INTERVAL = 100;
+
+    // If our FOV threshold is below this value, we will change the way our sensors behave
+    final double FOV_SENSOR_THRESHOLD = 30;
+
+
 
     /**
      * Calulate what we want our clock to run based on field of view
@@ -75,6 +100,26 @@ public class PoiControl implements HBAction, HBReset {
     }
 
     /**
+     * Change our Field of view amount
+     * @param increase true if we are increasing our amount, otherwise, we are decreasing
+     * @return the field of view
+     */
+    double changeFieldOfView(boolean increase){
+        if (increase){
+            if (currentFovIndex < fieldsOfView.length -1){
+                currentFovIndex++;
+            }
+        }
+        else {
+            if (currentFovIndex > 0){
+                currentFovIndex--;
+            }
+        }
+
+        return fieldsOfView[currentFovIndex];
+    }
+
+    /**
      * Get current date in seconds
      * @return time in seconds
      */
@@ -84,20 +129,26 @@ public class PoiControl implements HBAction, HBReset {
     }
 
     /**
-     * Play a number of beeps
-     * @param num_beeps
+     * Play Buzz
      */
-    void playBeeps(int num_beeps){
-        Envelope e = envelopes.get(envelopIndex % TOTAL_OSCILLATORS);
-        final float LOUD_VOL = 20;
-        final float LOUD_SLOPE = 20;
-        final float LOUD_DURATION = 100;
+    void playBuzz(boolean direction){
 
-        for (int i = 0; i < num_beeps; i++) {
-            e.addSegment(LOUD_VOL, LOUD_SLOPE);
-            e.addSegment(LOUD_VOL, LOUD_DURATION);
-            e.addSegment(1, LOUD_SLOPE);
-        }
+        final float BUZZ_FREQ = 100;
+
+        // if we are going up, make our frequency go up
+        float end_freq = direction? BUZZ_FREQ *2: BUZZ_FREQ /2;
+
+        Envelope freq_envelope = new Envelope(100);
+        WavePlayer wp = new WavePlayer(freq_envelope, Buffer.SQUARE);
+        Envelope gain_envelope = new Envelope(1);
+        Gain soundAmp = new Gain(1, gain_envelope);
+        wp.connectTo(soundAmp).connectTo(masterGain);
+
+        freq_envelope.addSegment(end_freq, BUZZ_DURATION);
+        gain_envelope.addSegment(BUZZ_VOL, BUZZ_DURATION);
+        gain_envelope.addSegment(0, 10, new KillTrigger(soundAmp));
+
+
     }
     @Override
     public void action(HB hb) {
@@ -139,20 +190,52 @@ public class PoiControl implements HBAction, HBReset {
 
         beepClock = hbClock;
 
-        /*************************************************************
-         * Create an integer type Dynamic Control that displays as a slider
-         * Simply type intSliderControl to generate this code
-         *************************************************************/
-        IntegerSliderControl clockSpeed = new IntegerSliderControl(this, "ClockSpeed", 1000, 20, 5000) {
 
+        /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        FloatBuddyControl fovReturn = new FloatBuddyControl(this, "FOV Return", 0, -1, 1) {
             @Override
-            public void valueChanged(int control_val) {
+            public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
-                clockInterval = control_val;
-                beepClock.setInterval(clockInterval);
+
+                playBuzz(control_val > remoteFOV);
+                remoteFOV = control_val;
+
+
                 /*** Write your DynamicControl code above this line ***/
             }
-        };/*** End DynamicControl clockSpeed code ***/
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl fovReturnControl code ***/
+        /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        FloatBuddyControl upSender = new FloatBuddyControl(this, "UP Movement", 0, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl upSender code ***/
+
+        /*************************************************************
+         * Create a Float type Dynamic Control pair
+         * Simply type globalFloatControl to generate this code
+         *************************************************************/
+        FloatBuddyControl lrSender = new FloatBuddyControl(this, "LR Movement", 0, -1, 1) {
+            @Override
+            public void valueChanged(double control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl lrSender code ***/
+
 
         /*************************************************************
          * Create a Float type Dynamic Control pair
@@ -208,6 +291,7 @@ public class PoiControl implements HBAction, HBReset {
                 /*** Write your DynamicControl code above this line ***/
             }
         }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl code fieldOfViewControl ***/
+
         /*****************************************************
          * Add a gyroscope sensor listener. *
          * to create this code, simply type gyroscopeSensor
@@ -217,13 +301,18 @@ public class PoiControl implements HBAction, HBReset {
             public void sensorUpdated(float pitch, float roll, float yaw) {
                 /******** Write your code below this line ********/
 
-
-
                 // make sure we have enough gyroscope to warrant moving azimuth
                 if (Math.abs(pitch) > 0.1 && Math.abs(pitch) < FOV_GYRO_THRESHOLD) {
-                    float az_adjust = (float) averageAzimuth.addValue(pitch) / 100;
-                    currentAzimuth += az_adjust;
-                    azimuthSender.setValue(currentAzimuth);
+                    if (lowResolutionMode()) {
+                        float az_adjust = (float) averageAzimuth.addValue(pitch) / 100;
+                        currentAzimuth += az_adjust;
+                        azimuthSender.setValue(currentAzimuth);
+                    }
+                    else
+                    {
+                        // we need to send left right
+                        lrSender.setValue(pitch / 8);
+                    }
                 }
 
                 if (Math.abs(pitch) >= FOV_GYRO_THRESHOLD) {
@@ -232,32 +321,39 @@ public class PoiControl implements HBAction, HBReset {
                         lastFovDate = getDateinSeconds();
                         double current_fov = fieldOfViewControl.getValue();
 
-                        if (pitch < 0) {
+                        double new_fov = changeFieldOfView(pitch < 0);
 
-                            if (current_fov > MIN_FOV) {
-                                fieldOfViewControl.setValue(current_fov - FOV_INCREMENT);
-                                playBeeps (2);
-                            }
-                        } else {
-                            if (current_fov < MAX_FOV) {
-                                fieldOfViewControl.setValue(current_fov + FOV_INCREMENT);
-                                playBeeps(5);
+                        if (current_fov != new_fov){
+                            fieldOfViewControl.setValue(new_fov);
+                            playBuzz(pitch > 0);
+                            if (!lowResolutionMode()){
+                                // stop sending our arrow keys
+                                lrSender.setValue(0);
+                                upSender.setValue(0);
                             }
                         }
+
                     }
                 }
                 // Let us stabilise the altidue by making sure we have enough gyo on roll and yaw
                 // to indicate we are actually moving. We will do a pythagorean average
                 double averageGyro = Math.sqrt( roll * roll + yaw * yaw);
 
-                double gyro_thresh = 0.04;
-                if (averageGyro > gyro_thresh) {
+
+                if (averageGyro > ALTITIDE_GYRO_THRESHOLD) {
                     gyroValue.setValue(Math.round(averageGyro * 100));
                     altitudeMovementValid = true;
                 }
                 else{
                     altitudeMovementValid = false;
                 }
+
+                // see if we are going to send up / down keys
+                if (Math.abs(yaw) > 0.1 && !lowResolutionMode()) {
+                    // we need to send left right
+                    upSender.setValue(yaw / 2);
+                }
+
                 /******** Write your code above this line ********/
             }
         }.setRounding(2);
@@ -273,23 +369,26 @@ public class PoiControl implements HBAction, HBReset {
                 /* accelerometer values typically range from -1 to + 1 */
                 /******** Write your code below this line ********/
 
-                // we are going to make our value go from 0 min to 2 max
-                // this allows conversion to radians the min value and max values level
+                //
+                if (lowResolutionMode()) {
+                    // we are going to make our value go from min to  max
+                    // this allows conversion to radians the min value and max values level
 
-                final double MAX_ALT = 2 - 0.000001;
-                float scaled_val = Sensor.scaleValue(-1, 1, 1, MAX_ALT, y_val);
-                float altitude_val = scaled_val;
+                    float scaled_val = Sensor.scaleValue(-1, 1, MIN_ALT, MAX_ALT, y_val);
+                    float altitude_val = scaled_val;
 
-                float altitude = (float) averageAltitude.addValue(altitude_val);
-                if (altitude >= 1 && altitude <= MAX_ALT) {
+                    float altitude = (float) averageAltitude.addValue(altitude_val);
+                    if (altitude >= 1 && altitude <= MAX_ALT) {
 
-                    currentAltitude = altitude;
+                        currentAltitude = altitude;
 
 
-                    if (altitudeMovementValid) {
-                        altitudeSender.setValue(currentAltitude);
+                        if (altitudeMovementValid) {
+                            altitudeSender.setValue(currentAltitude);
+                        }
                     }
                 }
+
                 /******** Write your code above this line ********/
 
             }
@@ -305,6 +404,14 @@ public class PoiControl implements HBAction, HBReset {
 
         hbClock.start();
         /***** Type your HBAction code above this line ******/
+    }
+
+    /**
+     * See if we are in high resolution mode
+     * @return
+     */
+    private boolean lowResolutionMode() {
+        return fieldsOfView[currentFovIndex] >= FOV_SENSOR_THRESHOLD;
     }
 
     /**
