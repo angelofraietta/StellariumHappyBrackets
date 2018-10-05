@@ -3,6 +3,7 @@ import net.happybrackets.core.HBReset;
 import net.happybrackets.core.control.*;
 import net.happybrackets.device.HB;
 import net.happybrackets.device.sensors.Sensor;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.*;
@@ -51,6 +52,8 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
     // use this control to send back to notify our listeners we have changed FOV
     FloatControl fovReturnControl = null;
+
+    String lastAltAz = "";
 
     @Override
     public void action(HB hb) {
@@ -106,6 +109,37 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
 
         /****************** End threadFunction **************************/
+
+
+        /*************************************************************
+         * Control to send current cooridinates
+         *************************************************************/
+        TextControl coordinatesSender = new TextControl(this, "Current Coordinate", "") {
+            @Override
+            public void valueChanged(String control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl positionSend code ***/
+
+
+        /*** Simply type globalTriggerControl to generate this code ***/
+        TriggerControl coordinatesRequested = new TriggerControl(this, "Get Coordinates") {
+            @Override
+            public void triggerEvent() {
+                /*** Write your DynamicControl code below this line ***/
+                String coordinates = requestCoordinated();
+
+                if (!coordinates.isEmpty()){
+                    coordinatesSender.setValue(coordinates);
+                }
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl coordinatesRequested code ***/
+
 
         /*************************************************************
          * Create a Float type Dynamic Control pair
@@ -306,6 +340,22 @@ public class StellariumLocalHost implements HBAction, HBReset {
          * Create a Boolean type Dynamic Control that displays as a check box
          * Simply type booleanControl to generate this code
          *************************************************************/
+        BooleanControl groundControl = new BooleanControl(this, "Ground", true) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                sendStelProperty("actionShow_Ground", control_val);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl atmosphereControl code ***/
+
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
         BooleanControl ConstellationControl = new BooleanControl(this, "Constellation Art", false) {
             @Override
             public void valueChanged(Boolean control_val) {
@@ -363,7 +413,7 @@ public class StellariumLocalHost implements HBAction, HBReset {
          * Create a Trigger type Dynamic Control that displays as a button
          * Simply type triggerControl to generate this code
          *************************************************************/
-        TriggerControl triggerControl = new TriggerControl(this, "Clear Display") {
+        new TriggerControl(this, "Clear Display") {
             @Override
             public void triggerEvent() {
                 /*** Write your DynamicControl code below this line ***/
@@ -377,6 +427,52 @@ public class StellariumLocalHost implements HBAction, HBReset {
                 /*** Write your DynamicControl code above this line ***/
             }
         };/*** End DynamicControl triggerControl code ***/
+
+
+        /*************************************************************
+         * Create a Trigger type Dynamic Control that displays as a button
+         * Simply type triggerControl to generate this code
+         *************************************************************/
+        TriggerControl requestPosition = new TriggerControl(this, "Request Position") {
+            @Override
+            public void triggerEvent() {
+                /*** Write your DynamicControl code below this line ***/
+                String api = "main/view";
+
+                try {
+                    JSONObject message_val = sendGetMessage(api);
+                    if (message_val != null) {
+
+                        Object altAz = message_val.get("altAz");
+                        if (altAz != null){
+                            lastAltAz = altAz.toString();
+                            System.out.println(lastAltAz);
+                        }
+                        //ret = message_val.getBoolean("scriptIsRunning");
+
+                    }
+                }
+                catch (Exception ex){}
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl requestPosition code ***/
+
+        /*************************************************************
+         * Create a Trigger type Dynamic Control that displays as a button
+         * Simply type triggerControl to generate this code
+         *************************************************************/
+        TriggerControl sendLastAltAZ = new TriggerControl(this, "Send last AltAz") {
+            @Override
+            public void triggerEvent() {
+                /*** Write your DynamicControl code below this line ***/
+
+                if (!lastAltAz.isEmpty()){
+                    sendAltAz(lastAltAz);
+                }
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl sendLastAltAZ code ***/
 
         /*************************************************************
          * Create a Float type Dynamic Control pair
@@ -499,7 +595,6 @@ public class StellariumLocalHost implements HBAction, HBReset {
     synchronized boolean sendPostMessage(String api, Map<String,Object> params) {
         boolean ret = false;
 
-        System.out.println("Send Post");
         try {
             URL url = new URL("http://" + stellariumDevice + ":8090/api/" + api);
             StringBuilder postData = new StringBuilder();
@@ -565,8 +660,21 @@ public class StellariumLocalHost implements HBAction, HBReset {
         return ret;
 
     }
+
     /**
-     * Send new altaz position to stellarium
+     * Set to defined altAz coordinates
+     * @param coordinate the coordinates to go to
+     * @return true on success
+     */
+    boolean sendAltAz(String coordinate){
+        String api = "main/view";
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("altAz", coordinate);
+
+        return sendPostMessage(api, params);
+    }
+    /**
+     * Send new altAaz position to stellarium
      * @param az new azimuth in radians
      * @param alt new altitude in radians
      * @return status message
@@ -664,6 +772,30 @@ public class StellariumLocalHost implements HBAction, HBReset {
         params.put("y", qty);
 
         return sendPostMessage(api, params);
+    }
+
+    /**
+     * get the current coordinates of
+     * @return current coordinates in x,y,z
+     */
+    String requestCoordinated(){
+        String ret = "";
+
+        String api = "main/view";
+
+        try {
+            JSONObject message_val = sendGetMessage(api);
+            if (message_val != null) {
+
+                Object altAz = message_val.get("altAz");
+                if (altAz != null){
+                    ret = altAz.toString();
+                }
+
+            }
+        }
+        catch (Exception ex){}
+        return ret;
     }
     //<editor-fold defaultstate="collapsed" desc="Debug Start">
 

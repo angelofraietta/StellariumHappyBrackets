@@ -1,4 +1,0 @@
-
-#this is the POI control. Axis is on the string
-
-PoiControl

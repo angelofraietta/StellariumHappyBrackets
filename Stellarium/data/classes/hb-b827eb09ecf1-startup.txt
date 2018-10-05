@@ -1,3 +1,0 @@
-#this is the startup for the pi running stellarium
-
-StellariumSlave

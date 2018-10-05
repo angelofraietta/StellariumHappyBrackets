@@ -1,2 +1,0 @@
-// hides or displays the atmosphere
-LandscapeMgr.setFlagAtmosphere(true);

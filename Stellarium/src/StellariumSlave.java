@@ -39,7 +39,8 @@ public class StellariumSlave implements HBAction, HBReset {
 
     private double fieldOfView  = 1;
 
-    String stellariumDevice = "Michaels-Mac-mini-3.local";
+    String stellariumDevice = "Angelos-Mac-mini.local";
+    //String stellariumDevice = "Angelos-mini";
 
 
     private double timeRate = 0;
@@ -51,6 +52,8 @@ public class StellariumSlave implements HBAction, HBReset {
 
     // use this control to send back to notify our listeners we have changed FOV
     FloatControl fovReturnControl = null;
+
+    String lastAltAz = "";
 
     @Override
     public void action(HB hb) {
@@ -85,6 +88,69 @@ public class StellariumSlave implements HBAction, HBReset {
         System.out.println("Robot finished");
 
 
+
+        /*************************************************************
+         * Control to send current cooridinates
+         *************************************************************/
+        TextControl coordinatesSender = new TextControl(this, "Current Coordinate", "") {
+            @Override
+            public void valueChanged(String control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+        /*** End DynamicControl positionSend code ***/
+
+        /*************************************************************
+         * Create a Trigger type Dynamic Control that displays as a button
+         * Simply type triggerControl to generate this code
+         *************************************************************/
+        TriggerControl requestPosition = new TriggerControl(this, "Request Position") {
+            @Override
+            public void triggerEvent() {
+                /*** Write your DynamicControl code below this line ***/
+                String api = "main/view";
+
+                try {
+                    JSONObject message_val = sendGetMessage(api);
+                    if (message_val != null) {
+
+                        Object altAz = message_val.get("altAz");
+                        if (altAz != null){
+                            lastAltAz = altAz.toString();
+                            System.out.println(lastAltAz);
+                            coordinatesSender.setValue(lastAltAz);
+                        }
+                        //ret = message_val.getBoolean("scriptIsRunning");
+
+                    }
+                }
+                catch (Exception ex){}
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        };/*** End DynamicControl requestPosition code ***/
+
+/*************************************************************
+ * Create a Trigger type Dynamic Control
+ *
+ * Simply type globalTriggerControl to generate this code
+ *************************************************************/
+        TriggerControl requestCoordinates = new TriggerControl(this, "Get Coordinates") {
+            @Override
+            public void triggerEvent() {
+                /*** Write your DynamicControl code below this line ***/
+                /*** Write your DynamicControl code below this line ***/
+                String coordinates = requestCoordinated();
+
+                if (!coordinates.isEmpty()){
+                    coordinatesSender.setValue(coordinates);
+                }
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);
+/*** End DynamicControl requestCoordinates code ***/
         /***********************************************************
          * Create a runnable thread object
          * simply type synchronizedThread to generate this code
@@ -300,7 +366,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
                 /*** Write your DynamicControl code above this line ***/
             }
-        };/*** End DynamicControl atmosphereControl code ***/
+        }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl atmosphereControl code ***/
 
         /*************************************************************
          * Create a Boolean type Dynamic Control that displays as a check box
@@ -315,8 +381,23 @@ public class StellariumSlave implements HBAction, HBReset {
 
                 /*** Write your DynamicControl code above this line ***/
             }
-        };/*** End DynamicControl atmosphereControl code ***/
+        }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl atmosphereControl code ***/
 
+
+        /*************************************************************
+         * Create a Boolean type Dynamic Control that displays as a check box
+         * Simply type booleanControl to generate this code
+         *************************************************************/
+        BooleanControl groundControl = new BooleanControl(this, "Ground", true) {
+            @Override
+            public void valueChanged(Boolean control_val) {
+                /*** Write your DynamicControl code below this line ***/
+
+                sendStelProperty("actionShow_Ground", control_val);
+
+                /*** Write your DynamicControl code above this line ***/
+            }
+        }.setControlScope(ControlScope.GLOBAL);/*** End DynamicControl atmosphereControl code ***/
 
         /*************************************************************
          * Create a Boolean type Dynamic Control that displays as a check box
@@ -388,7 +469,7 @@ public class StellariumSlave implements HBAction, HBReset {
                 /*** Write your DynamicControl code below this line ***/
                 /*** Write your DynamicControl code above this line ***/
             }
-        }.setControlScope(ControlScope.GLOBAL);
+        };
 
         /*************************************************************
          * Create a Float type Dynamic Control that displays as a slider and text box
@@ -499,7 +580,6 @@ public class StellariumSlave implements HBAction, HBReset {
     synchronized boolean sendPostMessage(String api, Map<String,Object> params) {
         boolean ret = false;
 
-        System.out.println("Send Post");
         try {
             URL url = new URL("http://" + stellariumDevice + ":8090/api/" + api);
             StringBuilder postData = new StringBuilder();
@@ -544,7 +624,7 @@ public class StellariumSlave implements HBAction, HBReset {
         JSONObject ret = null;
 
         try {
-            URL url = new URL("http://localhost:8090/api/" + api);
+            URL url = new URL("http://" + stellariumDevice + ":8090/api/" + api);
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -565,6 +645,20 @@ public class StellariumSlave implements HBAction, HBReset {
         return ret;
 
     }
+
+    /**
+     * Set to defined altAz coordinates
+     * @param coordinate the coordinates to go to
+     * @return true on success
+     */
+    boolean sendAltAz(String coordinate){
+        String api = "main/view";
+        Map<String,Object> params = new LinkedHashMap<>();
+        params.put("altAz", coordinate);
+
+        return sendPostMessage(api, params);
+    }
+
     /**
      * Send new altaz position to stellarium
      * @param az new azimuth in radians
@@ -665,6 +759,30 @@ public class StellariumSlave implements HBAction, HBReset {
 
         return sendPostMessage(api, params);
     }
+    /**
+     * get the current coordinates of
+     * @return current coordinates in x,y,z
+     */
+    String requestCoordinated(){
+        String ret = "";
+
+        String api = "main/view";
+
+        try {
+            JSONObject message_val = sendGetMessage(api);
+            if (message_val != null) {
+
+                Object altAz = message_val.get("altAz");
+                if (altAz != null){
+                    ret = altAz.toString();
+                }
+
+            }
+        }
+        catch (Exception ex){}
+        return ret;
+    }
+
     //<editor-fold defaultstate="collapsed" desc="Debug Start">
 
     /**
