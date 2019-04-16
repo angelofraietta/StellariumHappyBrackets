@@ -7,6 +7,7 @@ import net.beadsproject.beads.ugens.WavePlayer;
 import net.happybrackets.core.HBAction;
 import net.happybrackets.core.HBReset;
 import net.happybrackets.core.control.*;
+import net.happybrackets.core.instruments.WaveModule;
 import net.happybrackets.core.scheduling.Clock;
 import net.happybrackets.core.scheduling.Delay;
 import net.happybrackets.device.HB;
@@ -51,7 +52,7 @@ public class PoiControl implements HBAction, HBReset {
     float currentAltitude = 0;
     float currentAzimuth = 0;
 
-    final int TOTAL_OSCILLATORS = 10;
+    final int TOTAL_OSCILLATORS = 7;
     int numOscillators = 0;
 
     Gain masterGain = new Gain(NUMBER_AUDIO_CHANNELS, 0.1f);
@@ -465,7 +466,9 @@ public class PoiControl implements HBAction, HBReset {
 
         // create additional oscillators
         for (int i = 0; i < TOTAL_OSCILLATORS; i++) {
-           envelopes.add(addOscillator(500+hb.rng.nextFloat()*50));
+            float freq = hb.rng.nextFloat() * 50 + 500;
+
+            envelopes.add(addOscillator(freq));
         }
 
 
@@ -490,10 +493,13 @@ public class PoiControl implements HBAction, HBReset {
     Envelope addOscillator(float freq){
         numOscillators++;
         masterGain.setGain(0.1f / numOscillators);
-        WavePlayer wp = new WavePlayer(freq, Buffer.SINE);
+
         Envelope envelope = new Envelope(1);
-        Gain soundAmp = new Gain(1, envelope);
-        wp.connectTo(soundAmp).connectTo(masterGain);
+
+        WaveModule soundGenerator = new WaveModule();
+        soundGenerator.setFequency(freq);
+        soundGenerator.setGain(envelope);
+        soundGenerator.connectTo(masterGain);
         return  envelope;
 
     }

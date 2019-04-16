@@ -52,6 +52,7 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
     // use this control to send back to notify our listeners we have changed FOV
     FloatControl fovReturnControl = null;
+    FloatControl postTimeSender;
 
     String lastAltAz = "";
 
@@ -110,6 +111,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
         /****************** End threadFunction **************************/
 
+        
+        postTimeSender = new FloatControlSender(this, "Post Time", 0);
+        
 
         /*************************************************************
          * Control to send current cooridinates
@@ -140,12 +144,15 @@ public class StellariumLocalHost implements HBAction, HBReset {
         }.setControlScope(ControlScope.GLOBAL);
         /*** End DynamicControl coordinatesRequested code ***/
 
+        
+        FloatControl lrDisplay = new FloatControlSender(this, "LR Movement Local", 0);
+        
 
         /*************************************************************
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        FloatBuddyControl leftRightMovement = new FloatBuddyControl(this, "LR Movement", 0, -1, 1) {
+        FloatControl leftRightMovement = new FloatSliderControl(this, "LR Movement", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -154,19 +161,23 @@ public class StellariumLocalHost implements HBAction, HBReset {
                     lrMoveSynchroniser.notify();
                 }
 
+                lrDisplay.setValue(control_val);
                 /*** Write your DynamicControl code above this line ***/
             }
         }.setControlScope(ControlScope.GLOBAL);
 
+
+        FloatControl udDisplay = new FloatControlSender(this, "UD Movement Local", 0);
         /*************************************************************
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        FloatBuddyControl upDownMovement = new FloatBuddyControl(this, "UP Movement", 0, -1, 1) {
+        FloatControl upDownMovement = new FloatSliderControl(this, "UP Movement", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
                 UDMovementAmount = control_val;
+                udDisplay.setValue(control_val);
                 synchronized (upMoveSynchroniser){
                     upMoveSynchroniser.notify();
                 }
@@ -235,11 +246,8 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
                 params.put("fov", fieldOfView);
                 try {
-                    if (sendPostMessage(api, params)){
-                        if (fovReturnControl != null) {
-                            fovReturnControl.setValue(fieldOfView);
-                        }
-                    }
+                    sendPostMessage(api, params);
+
                 }catch (Exception ex){
                     ex.printStackTrace();
                 }
@@ -288,9 +296,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
         }).start();
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
-         * Simply type floatBuddyControl to generate this code
+         * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatBuddyControl azimuthControl = new FloatBuddyControl(this, "Left / Right", 0, -1, 1) {
+        FloatControl azimuthControl = new FloatSliderControl(this, "Left / Right", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
 
@@ -306,9 +314,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
-         * Simply type floatBuddyControl to generate this code
+         * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatBuddyControl altitudeControl = new FloatBuddyControl(this, "Altitude", 0, -1, 1) {
+        FloatControl altitudeControl = new FloatSliderControl(this, "Altitude", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -325,7 +333,7 @@ public class StellariumLocalHost implements HBAction, HBReset {
          * Create a Boolean type Dynamic Control that displays as a check box
          * Simply type booleanControl to generate this code
          *************************************************************/
-        BooleanControl atmosphereControl = new BooleanControl(this, "Atmospehere", true) {
+        BooleanControl atmosphereControl = new BooleanControl(this, "Atmospehere", false) {
             @Override
             public void valueChanged(Boolean control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -478,7 +486,7 @@ public class StellariumLocalHost implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        fovReturnControl = new FloatBuddyControl(this, "FOV Return", 0, -1, 1) {
+        fovReturnControl = new FloatSliderControl(this, "FOV Return", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -490,7 +498,7 @@ public class StellariumLocalHost implements HBAction, HBReset {
          * Create a Float type Dynamic Control that displays as a slider and text box
          * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatControl FOVControl = new FloatBuddyControl(this, "Field of view", 20, 1, 180) {
+        FloatControl FOVControl = new FloatSliderControl(this, "Field of view", 20, 1, 180) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -505,9 +513,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
-         * Simply type floatBuddyControl to generate this code
+         * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatControl TimerateControl = new FloatBuddyControl(this, "Timerate", timeRate, -0.006666667, 0.006666667) {
+        FloatControl TimerateControl = new FloatSliderControl(this, "Timerate", timeRate, -0.006666667, 0.006666667) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -540,9 +548,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
 
         /*************************************************************
          * Create a Float type Dynamic Control pair that displays as a slider and text box
-         * Simply type floatBuddyControl to generate this code
+         * Simply type FloatSliderControl to generate this code
          *************************************************************/
-        FloatBuddyControl accelerometerSimulator = new FloatBuddyControl(this, "Accel Sim", 1, -1, 1) {
+        FloatControl accelerometerSimulator = new FloatSliderControl(this, "Accel Sim", 1, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -580,6 +588,8 @@ public class StellariumLocalHost implements HBAction, HBReset {
                 /*** Write your DynamicControl code above this line ***/
             }
         };/*** End DynamicControl stelPropertyValue code ***/
+
+        sendStelProperty("actionShow_Atmosphere", false);
         /***** Type your HBAction code above this line ******/
     }
 
@@ -594,6 +604,8 @@ public class StellariumLocalHost implements HBAction, HBReset {
      */
     synchronized boolean sendPostMessage(String api, Map<String,Object> params) {
         boolean ret = false;
+
+        long current_time = System.currentTimeMillis();
 
         try {
             URL url = new URL("http://" + stellariumDevice + ":8090/api/" + api);
@@ -629,6 +641,9 @@ public class StellariumLocalHost implements HBAction, HBReset {
             ret = false;
         }
 
+        long elapsed = System.currentTimeMillis();
+
+        postTimeSender.setValue(elapsed - current_time);
         return ret;
 
     }

@@ -227,7 +227,7 @@ public class PoiControl2 implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        FloatBuddyControl fovReturn = new FloatBuddyControl(this, "FOV Return", 0, -1, 1) {
+        FloatControl fovReturn = new FloatSliderControl(this, "FOV Return", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/

@@ -39,7 +39,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
     private double fieldOfView  = 1;
 
-    String stellariumDevice = "Angelos-Mac-mini.local";
+    String stellariumDevice = "localhost";
     //String stellariumDevice = "Angelos-mini";
 
 
@@ -89,68 +89,7 @@ public class StellariumSlave implements HBAction, HBReset {
 
 
 
-        /*************************************************************
-         * Control to send current cooridinates
-         *************************************************************/
-        TextControl coordinatesSender = new TextControl(this, "Current Coordinate", "") {
-            @Override
-            public void valueChanged(String control_val) {
-                /*** Write your DynamicControl code below this line ***/
 
-                /*** Write your DynamicControl code above this line ***/
-            }
-        }.setControlScope(ControlScope.GLOBAL);
-        /*** End DynamicControl positionSend code ***/
-
-        /*************************************************************
-         * Create a Trigger type Dynamic Control that displays as a button
-         * Simply type triggerControl to generate this code
-         *************************************************************/
-        TriggerControl requestPosition = new TriggerControl(this, "Request Position") {
-            @Override
-            public void triggerEvent() {
-                /*** Write your DynamicControl code below this line ***/
-                String api = "main/view";
-
-                try {
-                    JSONObject message_val = sendGetMessage(api);
-                    if (message_val != null) {
-
-                        Object altAz = message_val.get("altAz");
-                        if (altAz != null){
-                            lastAltAz = altAz.toString();
-                            System.out.println(lastAltAz);
-                            coordinatesSender.setValue(lastAltAz);
-                        }
-                        //ret = message_val.getBoolean("scriptIsRunning");
-
-                    }
-                }
-                catch (Exception ex){}
-
-                /*** Write your DynamicControl code above this line ***/
-            }
-        };/*** End DynamicControl requestPosition code ***/
-
-/*************************************************************
- * Create a Trigger type Dynamic Control
- *
- * Simply type globalTriggerControl to generate this code
- *************************************************************/
-        TriggerControl requestCoordinates = new TriggerControl(this, "Get Coordinates") {
-            @Override
-            public void triggerEvent() {
-                /*** Write your DynamicControl code below this line ***/
-                /*** Write your DynamicControl code below this line ***/
-                String coordinates = requestCoordinated();
-
-                if (!coordinates.isEmpty()){
-                    coordinatesSender.setValue(coordinates);
-                }
-                /*** Write your DynamicControl code above this line ***/
-            }
-        }.setControlScope(ControlScope.GLOBAL);
-/*** End DynamicControl requestCoordinates code ***/
         /***********************************************************
          * Create a runnable thread object
          * simply type synchronizedThread to generate this code
@@ -177,7 +116,7 @@ public class StellariumSlave implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        FloatBuddyControl leftRightMovement = new FloatBuddyControl(this, "LR Movement", 0, -1, 1) {
+        FloatControl leftRightMovement = new FloatSliderControl(this, "LR Movement", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -194,7 +133,7 @@ public class StellariumSlave implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair
          * Simply type globalFloatControl to generate this code
          *************************************************************/
-        FloatBuddyControl upDownMovement = new FloatBuddyControl(this, "UP Movement", 0, -1, 1) {
+        FloatControl upDownMovement = new FloatSliderControl(this, "UP Movement", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -322,7 +261,7 @@ public class StellariumSlave implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair that displays as a slider and text box
          * Simply type floatBuddyControl to generate this code
          *************************************************************/
-        FloatBuddyControl azimuthControl = new FloatBuddyControl(this, "Left / Right", 0, -1, 1) {
+        FloatControl azimuthControl = new FloatSliderControl(this, "Left / Right", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
 
@@ -340,7 +279,7 @@ public class StellariumSlave implements HBAction, HBReset {
          * Create a Float type Dynamic Control pair that displays as a slider and text box
          * Simply type floatBuddyControl to generate this code
          *************************************************************/
-        FloatBuddyControl altitudeControl = new FloatBuddyControl(this, "Altitude", 0, -1, 1) {
+        FloatControl altitudeControl = new FloatSliderControl(this, "Altitude", 0, -1, 1) {
             @Override
             public void valueChanged(double control_val) {
                 /*** Write your DynamicControl code below this line ***/
@@ -459,17 +398,7 @@ public class StellariumSlave implements HBAction, HBReset {
             }
         };/*** End DynamicControl triggerControl code ***/
 
-        /*************************************************************
-         * Create a Float type Dynamic Control pair
-         * Simply type globalFloatControl to generate this code
-         *************************************************************/
-        fovReturnControl = new FloatBuddyControl(this, "FOV Return", 0, -1, 1) {
-            @Override
-            public void valueChanged(double control_val) {
-                /*** Write your DynamicControl code below this line ***/
-                /*** Write your DynamicControl code above this line ***/
-            }
-        };
+
 
         /*************************************************************
          * Create a Float type Dynamic Control that displays as a slider and text box
